@@ -1,18 +1,10 @@
-# Quita 'name:' porque Swarm no lo permite
-
-networks:
-  anything-llm:
-    driver: bridge
+# docker/docker-compose.yml — versión Swarm OK
 
 services:
   anything-llm:
-    # Quita container_name (Swarm no lo admite)
-    # Quita build (Swarm no construye). Usa una imagen ya construida:
     image: mintplexlabs/anythingllm:latest
-
     cap_add:
       - SYS_ADMIN
-
     environment:
       - STORAGE_DIR=/app/server/storage
       - JWT_SECRET=${JWT_SECRET}
@@ -23,21 +15,15 @@ services:
       - OPENAI_BASE_PATH=${OPENAI_BASE_PATH}
       - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-
     volumes:
-      # Cambiamos rutas del host por volúmenes nombrados (persistentes)
       - anything_storage:/app/server/storage
       - collector_hotdir:/app/collector/hotdir
       - collector_outputs:/app/collector/outputs
-
-    # Mantén el puerto interno 3001. Dokploy/Traefik hará el routing por dominio.
-    # Puedes dejar este 'ports' o quitarlo si usarás solo Domains. Para pruebas está bien:
+    # Puedes dejar este mapeo para pruebas por IP:PUERTO; con Domains no es necesario
     ports:
       - "3001:3001"
-
     networks:
       - anything-llm
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -45,3 +31,8 @@ volumes:
   anything_storage:
   collector_hotdir:
   collector_outputs:
+
+networks:
+  anything-llm:
+    driver: overlay
+    attachable: true
