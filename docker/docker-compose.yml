@@ -1,4 +1,4 @@
-name: anythingllm
+# Quita 'name:' porque Swarm no lo permite
 
 networks:
   anything-llm:
@@ -6,26 +6,42 @@ networks:
 
 services:
   anything-llm:
-    container_name: anythingllm
-    build:
-      context: ../.
-      dockerfile: ./docker/Dockerfile
-      args:
-        ARG_UID: ${UID:-1000}
-        ARG_GID: ${GID:-1000}
+    # Quita container_name (Swarm no lo admite)
+    # Quita build (Swarm no construye). Usa una imagen ya construida:
+    image: mintplexlabs/anythingllm:latest
+
     cap_add:
       - SYS_ADMIN
+
+    environment:
+      - STORAGE_DIR=/app/server/storage
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - OPENAI_BASE_PATH=${OPENAI_BASE_PATH}
+      - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+
     volumes:
-      - "./.env:/app/server/.env"
-      - "../server/storage:/app/server/storage"
-      - "../collector/hotdir/:/app/collector/hotdir"
-      - "../collector/outputs/:/app/collector/outputs"
-    user: "${UID:-1000}:${GID:-1000}"
+      # Cambiamos rutas del host por volúmenes nombrados (persistentes)
+      - anything_storage:/app/server/storage
+      - collector_hotdir:/app/collector/hotdir
+      - collector_outputs:/app/collector/outputs
+
+    # Mantén el puerto interno 3001. Dokploy/Traefik hará el routing por dominio.
+    # Puedes dejar este 'ports' o quitarlo si usarás solo Domains. Para pruebas está bien:
     ports:
       - "3001:3001"
-    env_file:
-      - .env
+
     networks:
       - anything-llm
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+volumes:
+  anything_storage:
+  collector_hotdir:
+  collector_outputs:
