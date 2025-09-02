@@ -1,4 +1,4 @@
-# docker/docker-compose.yml — versión Swarm OK
+# docker/docker-compose.yml — Swarm OK (red overlay y nombre nuevo)
 
 services:
   anything-llm:
@@ -19,11 +19,11 @@ services:
       - anything_storage:/app/server/storage
       - collector_hotdir:/app/collector/hotdir
       - collector_outputs:/app/collector/outputs
-    # Puedes dejar este mapeo para pruebas por IP:PUERTO; con Domains no es necesario
+    # Mantén esto solo si quieres probar por IP:PUERTO; con Domains no es necesario
     ports:
       - "3001:3001"
     networks:
-      - anything-llm
+      - anything_llm_net
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -33,6 +33,6 @@ volumes:
   collector_outputs:
 
 networks:
-  anything-llm:
+  anything_llm_net:
     driver: overlay
     attachable: true
